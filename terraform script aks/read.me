@@ -1,0 +1,35 @@
+This Terraform configuration defines the following:
+
+An AKS cluster.
+An Azure SQL Server and database.
+A Kubernetes namespace.
+A Kubernetes secret for the SQL connection string.
+A Kubernetes deployment for the Web API application, using the SQL connection string as an environment variable.
+Step 3: Initialize and Apply
+
+terraform init
+terraform apply -var-file=terraform.tfvars
+
+Step 4: Access AKS Cluster
+
+Retrieve the AKS cluster's kubeconfig to access the cluster:
+terraform output aks_kubeconfig > ~/.kube/config
+
+
+step 5 :
+To test your application deployed on an AKS 
+The following command forwards traffic from a local port to a port on a pod in your AKS cluster.
+
+kubectl port-forward deployment/web-api-deployment <local-port>:<pod-port> -n my-app-namespace
+
+step 5.1:  Test the Application Locally
+curl http://localhost:8080/api/your-endpoint
+
+
+Step 6: Verify Database Connectivity
+For example, you can create an API endpoint like /api/health that performs a simple database query and returns a response indicating the database connection status.
+
+Step 7: Inspect Application Logs
+kubectl logs <pod-name> -n my-app-namespace
+
+
