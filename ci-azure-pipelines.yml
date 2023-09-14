@@ -1,0 +1,34 @@
+trigger:
+- main  # Trigger the pipeline when changes are pushed to the 'main' branch
+
+pr:
+- '*'
+
+pool:
+  vmImage: 'windows-latest'  # Choose an appropriate build agent image
+
+variables:
+  buildConfiguration: 'Release'
+
+jobs:
+- job: BuildAndPublish
+  steps:
+  - checkout: self
+
+  - task: UseDotNet@2
+    inputs:
+      packageType: 'sdk'
+      version: '3.x'
+      installationPath: $(Agent.ToolsDirectory)/dotnet
+
+  - script: dotnet build --configuration $(buildConfiguration)
+    displayName: 'Build API'
+
+  - script: dotnet publish --configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)
+    displayName: 'Publish API'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      artifactName: 'api'
+      publishLocation: 'Container'
