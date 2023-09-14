@@ -1,0 +1,62 @@
+trigger:
+- main  # Trigger the pipeline when changes are pushed to the 'main' branch
+
+pr:
+- '*'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+- stage: TerraformInit
+  jobs:
+  - job: TerraformInitJob
+    steps:
+    - checkout: self
+
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.x'
+        addToPath: true
+
+    - script: |
+        # Initialize Terraform
+        terraform init
+      displayName: 'Initialize Terraform'
+
+- stage: TerraformDeploy
+  jobs:
+  - job: TerraformDeployJob
+    dependsOn: TerraformInit
+    steps:
+    - checkout: self
+
+    - script: |
+        # Authenticate to Azure (service principal or other methods)
+        # Example: az login --service-principal -u $(servicePrincipalId) -p $(servicePrincipalKey) --tenant $(tenantId)
+
+        # Apply Terraform configuration
+        terraform apply -auto-approve
+      displayName: 'Deploy Infrastructure'
+
+- stage: DeployApplication
+  jobs:
+  - job: DeployApplicationJob
+    dependsOn: TerraformDeploy
+    steps:
+    - checkout: self
+
+    # Add steps to deploy your Web API application to the App Service.
+    # You can use Azure DevOps tasks or custom scripts depending on your application stack.
+
+- stage: Cleanup
+  jobs:
+  - job: CleanupJob
+    dependsOn: DeployApplication
+    steps:
+    - checkout: self
+
+    - script: |
+        # Optionally, you can destroy the Terraform resources after deployment
+        terraform destroy -auto-approve
+      displayName: 'Destroy Infrastructure'
